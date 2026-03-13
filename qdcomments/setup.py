@@ -18,6 +18,7 @@ setup(
         "Source Code": "https://github.com/almargolis/quickdev/tree/master/qdcomments",
     },
     license="MIT",
+    package_dir={'': 'src'},
     packages=['qdcomments'],
     include_package_data=True,
     package_data={
