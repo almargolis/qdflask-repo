@@ -1,0 +1,123 @@
+# Flask with QuickDev Skill Reference
+
+Use this reference when building Flask applications with the QuickDev toolkit.
+
+## Packages
+
+### qdflask - User Authentication
+
+**What it provides**: Complete user auth with Flask-Login, role-based access control, user management UI, CLI tools, and optional email notifications.
+
+**Integration**:
+```python
+from qdflask import init_auth, create_admin_user
+from qdflask.auth import auth_bp
+
+init_auth(app, roles=['admin', 'editor', 'reader'])
+app.register_blueprint(auth_bp)
+```
+
+**Routes**: `/auth/login`, `/auth/logout`, `/auth/users` (admin CRUD)
+
+**Protection patterns**:
+```python
+from flask_login import login_required
+from qdflask import require_role
+
+@app.route('/admin')
+@login_required
+@require_role('admin')
+def admin_panel(): ...
+
+@app.route('/edit')
+@login_required
+@require_role('admin', 'editor')
+def edit_content(): ...
+```
+
+**User model fields**:
+- `id`, `username`, `email_address`, `email_verified`
+- `password_hash`, `role`, `is_active`
+- `created_at`, `last_login`
+- `comment_style`, `moderation_level` (for qdcomments integration)
+
+**User model methods**: `set_password()`, `check_password()`, `is_admin()`, `is_editor()`, `has_role()`, `get_by_username()`, `get_by_email()`, `get_all_active()`, `get_verified_admins()`
+
+### qdimages - Image Management
+
+**What it provides**: Content-addressed image storage with xxHash dedup, web-based editor (crop, resize, brightness, background removal), metadata tracking, REST API with 16 endpoints.
+
+**Integration**:
+```python
+from qdimages import init_image_manager
+
+init_image_manager(app, {
+    'IMAGES_BASE_PATH': './images',
+    'MAX_CONTENT_LENGTH': 10 * 1024 * 1024
+})
+```
+
+**Access points**: `/image-editor` (web UI), `/api/images/*` (REST API)
+
+### qdcomments - Commenting System
+
+**What it provides**: Threaded commenting with moderation, content filtering (blocked words, HTML sanitization, markdown), and admin tools.
+
+### Package Installation
+
+All packages are installed automatically by qdstart when enabled. For manual installation:
+```bash
+pip install -e ./qdflask
+pip install -e ./qdimages
+pip install -e ./qdcomments
+```
+
+## Handling Application-Specific User Data
+
+When the application needs user information beyond what qdflask's User model provides (e.g., profile fields, preferences, app-specific attributes):
+
+**STOP and ask the user**:
+> "This application needs user data not in qdflask's User model (specifically: [list the fields]). How would you like to handle this?"
+>
+> 1. **Extend in this application** (recommended) - Create a separate model/table with a foreign key to qdflask's User.id.
+>
+> 2. **Modify qdflask's User model** - If this data is genuinely general-purpose and would benefit all projects.
+
+### Option 1: Extend in the application (default recommendation)
+
+```python
+from qdbase import pdict, qdsqlite
+
+profile = pdict.DbDictTable("user_profiles", is_rowid_table=True)
+profile.add_column(pdict.Number("user_id", nullable=False, unique=True))
+profile.add_column(pdict.Text("display_name"))
+profile.add_column(pdict.Text("bio"))
+```
+
+Or with Flask-SQLAlchemy:
+
+```python
+class UserProfile(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, unique=True, nullable=False)
+    display_name = db.Column(db.String(100))
+    bio = db.Column(db.Text)
+```
+
+## Dependencies
+
+- `qdbase` - Foundation package (qdcheck, qdconf)
+- Flask, Flask-SQLAlchemy, Flask-Login, Werkzeug (qdflask)
+- Pillow, xxhash, PyYAML, rembg (qdimages)
+
+## Repository Structure
+
+```
+qdflask-repo/
+├── qdflask/src/qdflask/       # Authentication package
+├── qdimages/src/qdimages/     # Image management package
+├── qdcomments/src/qdcomments/ # Comments package
+├── qdflask_tests/
+├── qdimages_tests/
+└── README.md
+```
