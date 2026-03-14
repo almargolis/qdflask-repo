@@ -21,6 +21,7 @@ init_qdflask(app, db_path='passwords.db')
 - `password_hash`, `role`, `is_active`
 - `created_at`, `last_login`
 - `comment_style`, `moderation_level` (for qdcomments integration)
+- `can_generate_api_keys` (for qdflaskapi integration)
 
 **User model methods**: `set_password()`, `check_password()`, `is_admin()`, `is_editor()`, `has_role()`, `get_by_username()`, `get_by_email()`, `get_all_active()`, `get_verified_admins()`
 

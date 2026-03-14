@@ -66,3 +66,15 @@ def test_user_creation(app):
         assert retrieved is not None
         assert retrieved.role == 'editor'
         assert retrieved.is_active is True
+
+
+def test_can_generate_api_keys_defaults_false(app):
+    """Test that can_generate_api_keys defaults to False."""
+    with app.app_context():
+        user = User(username='apiuser', role='editor')
+        user.set_password('password123')
+        db.session.add(user)
+        db.session.commit()
+
+        retrieved = User.get_by_username('apiuser')
+        assert retrieved.can_generate_api_keys is False

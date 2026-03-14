@@ -28,6 +28,7 @@ class User(UserMixin, db.Model):
         is_active: Whether the user account is active
         comment_style: Comment formatting style ('t'=text, 'h'=HTML, 'm'=markdown)
         moderation_level: Comment moderation level ('0'=blocked, '1'=requires approval, '9'=auto-approved)
+        can_generate_api_keys: Whether user can generate API keys (managed by qdflaskapi config)
 
     Note:
         Routine email notifications are only sent to users with email_verified='Y'.
@@ -54,6 +55,9 @@ class User(UserMixin, db.Model):
     # Comment-related fields (used by qdcomments package)
     comment_style = db.Column(db.String(1), nullable=False, default='t')  # 't', 'h', 'm'
     moderation_level = db.Column(db.String(1), nullable=False, default='1')  # '0', '1', '9'
+
+    # API key generation (used by qdflaskapi package)
+    can_generate_api_keys = db.Column(db.Boolean, nullable=False, default=False)
 
     def set_password(self, password):
         """

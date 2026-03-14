@@ -173,6 +173,17 @@
                 </div>
             </div>
 
+            {% if show_api_keys %}
+            <div class="form-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="can_generate_api_keys" name="can_generate_api_keys"
+                           {% if user.can_generate_api_keys %}checked{% endif %}
+                           {% if not api_keys_editable %}disabled{% endif %}>
+                    <label for="can_generate_api_keys" style="margin: 0;">Can generate API keys</label>
+                </div>
+            </div>
+            {% endif %}
+
             <div class="form-group">
                 <label for="new_password">New Password (leave blank to keep current)</label>
                 <input type="password" id="new_password" name="new_password" class="form-control">

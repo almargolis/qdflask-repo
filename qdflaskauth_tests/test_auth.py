@@ -181,3 +181,113 @@ def test_admin_seeded_when_no_users(app):
         admin = User.get_by_username('admin')
         assert admin is not None
         assert admin.role == 'admin'
+
+
+# --- API key config tests ---
+
+def _login_admin(client):
+    """Log in as the seeded admin user."""
+    client.post('/auth/login', data={
+        'username': 'admin',
+        'password': 'admin'
+    })
+
+
+def _make_api_app(api_enabled, all_users):
+    """Create a test app with specific API key config."""
+    app = Flask(__name__)
+    app.config['TESTING'] = True
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+    app.config['SECRET_KEY'] = 'test-secret-key'
+    app.config['WTF_CSRF_ENABLED'] = False
+    app.config['QDFLASKAPI_ENABLED'] = api_enabled
+    app.config['QDFLASKAPI_ALL_USERS_CAN_GENERATE_API_KEYS'] = all_users
+
+    init_qdflask(app)
+    init_qdflaskauth(app, roles=['admin', 'editor', 'viewer'])
+
+    @app.route('/')
+    def index():
+        return "Home"
+
+    return app
+
+
+def test_api_disabled_hides_field_and_forces_false():
+    """When API is disabled, field is hidden and user gets can_generate_api_keys=False."""
+    app = _make_api_app(api_enabled=False, all_users=False)
+    with app.app_context():
+        with app.test_client() as client:
+            _login_admin(client)
+
+            # Add user — field should not appear in form
+            response = client.get('/auth/users/add')
+            assert b'can_generate_api_keys' not in response.data
+
+            # POST to create user
+            client.post('/auth/users/add', data={
+                'username': 'testuser',
+                'password': 'password123',
+                'role': 'editor',
+                'can_generate_api_keys': 'on',  # even if submitted, should be forced False
+            })
+
+            user = User.get_by_username('testuser')
+            assert user is not None
+            assert user.can_generate_api_keys is False
+
+
+def test_api_enabled_all_users_forces_true():
+    """When API is enabled and all_users=True, field is hidden and forced to True."""
+    app = _make_api_app(api_enabled=True, all_users=True)
+    with app.app_context():
+        with app.test_client() as client:
+            _login_admin(client)
+
+            # Add user — field should not appear in form
+            response = client.get('/auth/users/add')
+            assert b'can_generate_api_keys' not in response.data
+
+            # POST to create user — forced True even without checkbox
+            client.post('/auth/users/add', data={
+                'username': 'testuser',
+                'password': 'password123',
+                'role': 'editor',
+            })
+
+            user = User.get_by_username('testuser')
+            assert user is not None
+            assert user.can_generate_api_keys is True
+
+
+def test_api_enabled_per_user_editable():
+    """When API is enabled and not all_users, admin can toggle can_generate_api_keys."""
+    app = _make_api_app(api_enabled=True, all_users=False)
+    with app.app_context():
+        with app.test_client() as client:
+            _login_admin(client)
+
+            # Add user — field should appear in form
+            response = client.get('/auth/users/add')
+            assert b'can_generate_api_keys' in response.data
+
+            # Create user with checkbox on
+            client.post('/auth/users/add', data={
+                'username': 'testuser',
+                'password': 'password123',
+                'role': 'editor',
+                'can_generate_api_keys': 'on',
+            })
+
+            user = User.get_by_username('testuser')
+            assert user is not None
+            assert user.can_generate_api_keys is True
+
+            # Edit user — toggle off
+            client.post(f'/auth/users/edit/{user.id}', data={
+                'role': 'editor',
+                'is_active': 'on',
+            })
+
+            db.session.refresh(user)
+            assert user.can_generate_api_keys is False

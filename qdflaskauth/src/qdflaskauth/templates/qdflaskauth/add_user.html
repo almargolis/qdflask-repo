@@ -81,6 +81,16 @@
             border-color: #667eea;
         }
 
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+        }
+
         .btn {
             padding: 0.875rem 2rem;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -144,6 +154,16 @@
                     {% endfor %}
                 </select>
             </div>
+
+            {% if show_api_keys %}
+            <div class="form-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="can_generate_api_keys" name="can_generate_api_keys"
+                           {% if not api_keys_editable %}disabled{% endif %}>
+                    <label for="can_generate_api_keys" style="margin: 0;">Can generate API keys</label>
+                </div>
+            </div>
+            {% endif %}
 
             <div class="form-actions">
                 <button type="submit" class="btn">Create User</button>
