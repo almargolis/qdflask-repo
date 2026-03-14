@@ -1,0 +1,20 @@
+[questions.qdflaskapi.enabled]
+help = "Enable API key authentication? (qdflaskapi)"
+conf_type = "boolean"
+
+[questions.qdflaskapi.all_users_can_generate_api_keys]
+help = "Allow all users to generate API keys?"
+conf_type = "boolean"
+
+[questions.qdflaskapi.is_api]
+help = "Is this an API-only app (no browser UI)?"
+conf_type = "boolean"
+
+[flask.init_function]
+module = "qdflaskapi"
+function = "init_qdflaskapi"
+priority = 25
+
+[flask.init_function.params.config]
+source = "answers"
+keys = ["qdflaskapi.enabled", "qdflaskapi.all_users_can_generate_api_keys", "qdflaskapi.is_api"]
