@@ -5,7 +5,7 @@ Tests for qdflaskemail package.
 import pytest
 from unittest.mock import patch, MagicMock
 from flask import Flask
-from qdflask import init_auth
+from qdflask import init_qdflask
 from qdflask.models import User, db
 from qdflaskemail import init_qdflaskemail, send_email, send_to_admins, get_verified_admin_emails
 
@@ -18,11 +18,10 @@ def app():
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
     app.config['SECRET_KEY'] = 'test-secret-key'
 
-    init_auth(app, roles=['admin', 'editor'])
+    init_qdflask(app)
     init_qdflaskemail(app)
 
     with app.app_context():
-        db.create_all()
         yield app
         db.drop_all()
 

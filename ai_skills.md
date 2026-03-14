@@ -4,17 +4,45 @@ Use this reference when building Flask applications with the QuickDev toolkit.
 
 ## Packages
 
-### qdflask - User Authentication
+### qdflask - Data Layer
 
-**What it provides**: Complete user auth with Flask-Login, role-based access control, user management UI, and CLI tools.
+**What it provides**: SQLAlchemy database instance and User model. This is the data foundation that other packages build on.
 
 **Integration**:
 ```python
-from qdflask import init_auth, create_admin_user
-from qdflask.auth import auth_bp
+from qdflask import init_qdflask
+from qdflask.models import db, User
 
-init_auth(app, roles=['admin', 'editor', 'reader'])
-app.register_blueprint(auth_bp)
+init_qdflask(app, db_path='passwords.db')
+```
+
+**User model fields**:
+- `id`, `username`, `email_address`, `email_verified`
+- `password_hash`, `role`, `is_active`
+- `created_at`, `last_login`
+- `comment_style`, `moderation_level` (for qdcomments integration)
+
+**User model methods**: `set_password()`, `check_password()`, `is_admin()`, `is_editor()`, `has_role()`, `get_by_username()`, `get_by_email()`, `get_all_active()`, `get_verified_admins()`
+
+### qdflaskauth - Authentication
+
+**What it provides**: Flask-Login integration, role-based access control, user management UI, CLI tools, and read-only mode. Depends on qdflask for the data layer.
+
+**Integration**:
+```python
+from qdflask import init_qdflask
+from qdflaskauth import init_qdflaskauth, create_admin_user
+
+# Initialize data layer first, then auth
+init_qdflask(app)
+init_qdflaskauth(app, roles=['admin', 'editor', 'reader'])
+```
+
+**Read-only mode** (disable auth routes while `@login_required` still works):
+```python
+init_qdflaskauth(app, enabled=False)
+# Routes with @login_required return {"error": "Authentication is disabled"}, 403
+# No /auth/* routes, no admin seeded
 ```
 
 **Routes**: `/auth/login`, `/auth/logout`, `/auth/users` (admin CRUD)
@@ -22,7 +50,7 @@ app.register_blueprint(auth_bp)
 **Protection patterns**:
 ```python
 from flask_login import login_required
-from qdflask import require_role
+from qdflaskauth import require_role
 
 @app.route('/admin')
 @login_required
@@ -34,14 +62,6 @@ def admin_panel(): ...
 @require_role('admin', 'editor')
 def edit_content(): ...
 ```
-
-**User model fields**:
-- `id`, `username`, `email_address`, `email_verified`
-- `password_hash`, `role`, `is_active`
-- `created_at`, `last_login`
-- `comment_style`, `moderation_level` (for qdcomments integration)
-
-**User model methods**: `set_password()`, `check_password()`, `is_admin()`, `is_editor()`, `has_role()`, `get_by_username()`, `get_by_email()`, `get_all_active()`, `get_verified_admins()`
 
 ### qdflaskemail - Email Notifications
 
@@ -87,6 +107,7 @@ init_image_manager(app, {
 All packages are installed automatically by qdstart when enabled. For manual installation:
 ```bash
 pip install -e ./qdflask
+pip install -e ./qdflaskauth
 pip install -e ./qdflaskemail
 pip install -e ./qdimages
 pip install -e ./qdcomments
@@ -128,17 +149,20 @@ class UserProfile(db.Model):
 
 - `qdbase` - Foundation package (qdcheck, qdconf)
 - Flask, Flask-SQLAlchemy, Flask-Login, Werkzeug (qdflask)
+- Flask, Flask-Login, qdflask (qdflaskauth)
 - Pillow, xxhash, PyYAML, rembg (qdimages)
 
 ## Repository Structure
 
 ```
 qdflask-repo/
-├── qdflask/src/qdflask/             # Authentication package
+├── qdflask/src/qdflask/             # Data layer package
+├── qdflaskauth/src/qdflaskauth/     # Authentication package
 ├── qdflaskemail/src/qdflaskemail/   # Email notifications package
 ├── qdimages/src/qdimages/           # Image management package
 ├── qdcomments/src/qdcomments/       # Comments package
 ├── qdflask_tests/
+├── qdflaskauth_tests/
 ├── qdflaskemail_tests/
 ├── qdimages_tests/
 └── README.md

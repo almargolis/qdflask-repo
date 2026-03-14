@@ -1,5 +1,5 @@
 """
-qdflask.auth - Authentication blueprint
+qdflaskauth.auth - Authentication blueprint
 
 Provides routes for login, logout, and user management.
 """
@@ -35,9 +35,9 @@ def login():
                 return redirect(next_page)
             return redirect(url_for('index'))
 
-        return render_template('qdflask/login.html', error="Invalid credentials"), 401
+        return render_template('qdflaskauth/login.html', error="Invalid credentials"), 401
 
-    return render_template('qdflask/login.html')
+    return render_template('qdflaskauth/login.html')
 
 
 @auth_bp.route('/logout')
@@ -58,7 +58,7 @@ def list_users():
     users = User.get_all()
     roles = current_app.config.get('QDFLASK_ROLES', ['admin', 'editor'])
 
-    return render_template('qdflask/user_management.html', users=users, roles=roles)
+    return render_template('qdflaskauth/user_management.html', users=users, roles=roles)
 
 
 @auth_bp.route('/users/add', methods=['GET', 'POST'])
@@ -77,17 +77,17 @@ def add_user():
 
         # Validation
         if not username or not password:
-            return render_template('qdflask/add_user.html',
+            return render_template('qdflaskauth/add_user.html',
                                    error="Username and password are required",
                                    roles=roles)
 
         if User.get_by_username(username):
-            return render_template('qdflask/add_user.html',
+            return render_template('qdflaskauth/add_user.html',
                                    error="Username already exists",
                                    roles=roles)
 
         if len(password) < 6:
-            return render_template('qdflask/add_user.html',
+            return render_template('qdflaskauth/add_user.html',
                                    error="Password must be at least 6 characters",
                                    roles=roles)
 
@@ -103,7 +103,7 @@ def add_user():
 
         return redirect(url_for('auth.list_users'))
 
-    return render_template('qdflask/add_user.html', roles=roles)
+    return render_template('qdflaskauth/add_user.html', roles=roles)
 
 
 @auth_bp.route('/users/edit/<int:user_id>', methods=['GET', 'POST'])
@@ -131,7 +131,7 @@ def edit_user(user_id):
 
         if new_password:
             if len(new_password) < 6:
-                return render_template('qdflask/edit_user.html',
+                return render_template('qdflaskauth/edit_user.html',
                                        user=user,
                                        roles=roles,
                                        error="Password must be at least 6 characters")
@@ -141,7 +141,7 @@ def edit_user(user_id):
 
         return redirect(url_for('auth.list_users'))
 
-    return render_template('qdflask/edit_user.html', user=user, roles=roles)
+    return render_template('qdflaskauth/edit_user.html', user=user, roles=roles)
 
 
 @auth_bp.route('/users/delete/<int:user_id>', methods=['POST'])

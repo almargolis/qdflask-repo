@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-qdflask.cli - Command-line utilities for qdflask
+qdflaskauth.cli - Command-line utilities for qdflaskauth
 
 Provides CLI commands for initializing database and managing users.
 """
@@ -11,14 +11,14 @@ import sys
 
 def init_db():
     """
-    CLI entry point for qdflask-init command.
+    CLI entry point for qdflaskauth-init command.
 
     Initializes the database and creates an admin user.
 
     Usage:
-        qdflask-init --app myapp:app --admin-password secret123
+        qdflaskauth-init --app myapp:app --admin-password secret123
     """
-    parser = argparse.ArgumentParser(description='Initialize qdflask database')
+    parser = argparse.ArgumentParser(description='Initialize qdflaskauth database')
     parser.add_argument('--app', type=str, required=True,
                         help='Flask app module:instance (e.g., myapp:app)')
     parser.add_argument('--admin-username', type=str, default='admin',
@@ -83,14 +83,14 @@ def init_db():
 
 def create_user():
     """
-    CLI entry point for qdflask-create-user command.
+    CLI entry point for qdflaskauth-create-user command.
 
     Creates a new user.
 
     Usage:
-        qdflask-create-user --app myapp:app --username john --password secret --role editor
+        qdflaskauth-create-user --app myapp:app --username john --password secret --role editor
     """
-    parser = argparse.ArgumentParser(description='Create a new qdflask user')
+    parser = argparse.ArgumentParser(description='Create a new qdflaskauth user')
     parser.add_argument('--app', type=str, required=True,
                         help='Flask app module:instance (e.g., myapp:app)')
     parser.add_argument('--username', type=str, required=True,
@@ -146,14 +146,14 @@ def create_user():
 
 def list_users():
     """
-    CLI entry point for qdflask-list-users command.
+    CLI entry point for qdflaskauth-list-users command.
 
     Lists all users.
 
     Usage:
-        qdflask-list-users --app myapp:app
+        qdflaskauth-list-users --app myapp:app
     """
-    parser = argparse.ArgumentParser(description='List all qdflask users')
+    parser = argparse.ArgumentParser(description='List all qdflaskauth users')
     parser.add_argument('--app', type=str, required=True,
                         help='Flask app module:instance (e.g., myapp:app)')
     args = parser.parse_args()
@@ -200,5 +200,5 @@ if __name__ == '__main__':
         sys.argv.pop(1)
         sys.exit(list_users())
     else:
-        print("Usage: python -m qdflask.cli [init|create-user|list-users] [options]")
+        print("Usage: python -m qdflaskauth.cli [init|create-user|list-users] [options]")
         sys.exit(1)

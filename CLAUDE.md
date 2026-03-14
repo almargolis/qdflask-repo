@@ -4,20 +4,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a monorepo containing three reusable Flask packages for the QuickDev ecosystem:
+This is a monorepo containing reusable Flask packages for the QuickDev ecosystem:
 
-- **qdflask** — User authentication (Flask-Login, RBAC, user management UI, CLI)
+- **qdflask** — Data layer (SQLAlchemy db instance, User model)
+- **qdflaskauth** — Authentication (Flask-Login, RBAC, user management UI, CLI, read-only mode)
 - **qdflaskemail** — Email notifications (wraps qdemail, admin notifications, enabled/disabled flag)
 - **qdimages** — Image management (content-addressed storage with xxHash, web editor, REST API)
 - **qdcomments** — Threaded commenting (moderation, content filtering, admin tools)
 
-Each package lives under `<pkg>/src/<pkg>/` with its own `setup.py`. Tests are in `qdflask_tests/`, `qdflaskemail_tests/`, and `qdimages_tests/`.
+Each package lives under `<pkg>/src/<pkg>/` with its own `setup.py`. Tests are in `qdflask_tests/`, `qdflaskauth_tests/`, `qdflaskemail_tests/`, and `qdimages_tests/`.
 
 ## Commands
 
 ### Install packages (editable mode)
 ```bash
 pip install -e ./qdflask
+pip install -e ./qdflaskauth
 pip install -e ./qdflaskemail
 pip install -e ./qdimages
 pip install -e ./qdcomments
@@ -26,8 +28,9 @@ pip install -e ./qdcomments
 ### Run tests
 ```bash
 pytest qdflask_tests/
-pytest qdimages_tests/
-pytest qdflask_tests/test_auth.py::test_create_admin_user  # single test
+pytest qdflaskauth_tests/
+pytest qdflaskemail_tests/
+pytest qdflask_tests/ qdflaskauth_tests/ qdflaskemail_tests/  # all at once
 ```
 
 ## Architecture
@@ -39,13 +42,15 @@ pytest qdflask_tests/test_auth.py::test_create_admin_user  # single test
 
 ### Plugin system (qd_conf.toml)
 Each package declares a `qd_conf.toml` that defines configuration questions and an `init_function` with a priority. QuickDev's qdstart reads these to auto-wire packages into the Flask app factory:
-- qdflask: priority **10** (initializes first)
+- qdflask: priority **10** (initializes first — data layer)
+- qdflaskauth: priority **15** (auth layer, depends on qdflask)
 - qdflaskemail: priority **20**
 - qdimages, qdcomments: priority **50**
 
 ### Initialization pattern
 Each package exports an `init_*()` function that takes `(app, config)`, registers blueprints, and creates tables:
-- `qdflask.init_auth(app, roles=[...])` — registers `auth_bp` at `/auth`
+- `qdflask.init_qdflask(app, db_path='passwords.db')` — initializes db, creates tables
+- `qdflaskauth.init_qdflaskauth(app, enabled=True, roles=[...], login_view='auth.login')` — registers `auth_bp` at `/auth`
 - `qdflaskemail.init_qdflaskemail(app, config)` — sets email enabled/disabled
 - `qdimages.init_image_manager(app, config_dict)` — registers `image_bp`
 - `qdcomments.init_comments(app, config)` — registers `comments_bp` at `/comments`
@@ -53,7 +58,7 @@ Each package exports an `init_*()` function that takes `(app, config)`, register
 ### Key cross-package integration
 - The `User` model includes `comment_style` and `moderation_level` fields used by qdcomments
 - qdcomments snapshots these values at comment-creation time (prevents retroactive permission changes)
-- qdimages routes require `@login_required` from Flask-Login (set up by qdflask)
+- qdimages routes require `@login_required` from Flask-Login (set up by qdflaskauth)
 
 ### External dependencies
 All packages depend on **qdbase** (not in this repo) for configuration (`qdconf`) and validation (`qdcheck`) utilities. **qdflaskemail** depends on **qdemail** for SMTP delivery. These sibling packages live in the QuickDev monorepo at `../quickdev/` (one level up from this repo in `/Users/almargolis/Projects/published/`).

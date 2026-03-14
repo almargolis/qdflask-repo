@@ -1,10 +1,10 @@
 """
-Tests for qdflask authentication module.
+Tests for qdflask data layer.
 """
 
 import pytest
 from flask import Flask
-from qdflask import init_auth, create_admin_user
+from qdflask import init_qdflask
 from qdflask.models import User, db
 
 
@@ -15,37 +15,17 @@ def app():
     app.config['TESTING'] = True
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
     app.config['SECRET_KEY'] = 'test-secret-key'
-    app.config['WTF_CSRF_ENABLED'] = False
 
-    init_auth(app, roles=['admin', 'editor', 'viewer'])
+    init_qdflask(app)
 
     with app.app_context():
-        db.create_all()
         yield app
         db.drop_all()
 
 
-@pytest.fixture
-def client(app):
-    """Create a test client."""
-    return app.test_client()
-
-
-def test_init_auth(app):
-    """Test that authentication initialization works."""
-    assert app.config['TESTING'] is True
+def test_init_qdflask(app):
+    """Test that data layer initialization works."""
     assert 'sqlalchemy' in app.extensions
-
-
-def test_create_admin_user(app):
-    """Test creating an admin user."""
-    with app.app_context():
-        create_admin_user('admin', 'password123')
-        user = User.get_by_username('admin')
-        assert user is not None
-        assert user.username == 'admin'
-        assert user.role == 'admin'
-        assert user.check_password('password123')
 
 
 def test_user_password_hashing(app):
@@ -72,3 +52,17 @@ def test_user_roles(app):
         assert admin.has_role('admin')
         assert editor.has_role('editor')
         assert not editor.has_role('admin')
+
+
+def test_user_creation(app):
+    """Test creating and retrieving a user."""
+    with app.app_context():
+        user = User(username='newuser', role='editor')
+        user.set_password('password123')
+        db.session.add(user)
+        db.session.commit()
+
+        retrieved = User.get_by_username('newuser')
+        assert retrieved is not None
+        assert retrieved.role == 'editor'
+        assert retrieved.is_active is True

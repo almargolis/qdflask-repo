@@ -1,13 +1,3 @@
-[questions.qdflask.enabled]
-help = "Enable Flask authentication? (qdflask)"
-conf_type = "boolean"
-
-[questions.qdflask.roles]
-help = "Comma-separated user roles (must include admin)"
-
-[questions.qdflask.login_view]
-help = "Flask endpoint name for login redirect"
-
 [questions.qdflask.passwordsdb_fpath]
 help = "Path to the passwords database file"
 conf_type = "fpath"
@@ -18,20 +8,8 @@ conf_type = "random_fill"
 
 [flask.init_function]
 module = "qdflask"
-function = "init_auth"
+function = "init_qdflask"
 priority = 10
-
-[flask.init_function.params.roles]
-source = "answer"
-key = "qdflask.roles"
-type = "list"
-default = "['admin', 'editor']"
-
-[flask.init_function.params.login_view]
-source = "answer"
-key = "qdflask.login_view"
-type = "string"
-default = "'auth.login'"
 
 [flask.init_function.params.db_path]
 source = "answer"

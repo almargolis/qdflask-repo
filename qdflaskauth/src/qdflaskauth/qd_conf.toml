@@ -1,0 +1,32 @@
+[questions.qdflaskauth.enabled]
+help = "Enable Flask authentication routes? (qdflaskauth)"
+conf_type = "boolean"
+
+[questions.qdflaskauth.roles]
+help = "Comma-separated user roles (must include admin)"
+
+[questions.qdflaskauth.login_view]
+help = "Flask endpoint name for login redirect"
+
+[flask.init_function]
+module = "qdflaskauth"
+function = "init_qdflaskauth"
+priority = 15
+
+[flask.init_function.params.enabled]
+source = "answer"
+key = "qdflaskauth.enabled"
+type = "boolean"
+default = "True"
+
+[flask.init_function.params.roles]
+source = "answer"
+key = "qdflaskauth.roles"
+type = "list"
+default = "['admin', 'editor']"
+
+[flask.init_function.params.login_view]
+source = "answer"
+key = "qdflaskauth.login_view"
+type = "string"
+default = "'auth.login'"
