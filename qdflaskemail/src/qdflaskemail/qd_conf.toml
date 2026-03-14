@@ -1,0 +1,11 @@
+[questions.qdflaskemail.enabled]
+help = "Enable email notifications? (qdflaskemail)"
+conf_type = "boolean"
+
+[flask.init_function]
+module = "qdflaskemail"
+function = "init_qdflaskemail"
+priority = 20
+
+[answers]
+"qdemail.enabled" = true

@@ -1,5 +1,5 @@
 """
-Setup script for qdflask package.
+Setup script for qdflaskemail package.
 """
 
 from setuptools import setup, find_packages
@@ -8,35 +8,30 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name="qdflask",
+    name="qdflaskemail",
     version="0.1.0",
     author="Albert Margolis",
     author_email="almargolis@gmail.com",
-    description="Reusable Flask authentication package with role-based access control",
+    description="Email notification service for QuickDev Flask applications",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/almargolis/quickdev",
     project_urls={
         "Bug Tracker": "https://github.com/almargolis/quickdev/issues",
-        "Documentation": "https://github.com/almargolis/quickdev/blob/master/qdflask/README.md",
-        "Source Code": "https://github.com/almargolis/quickdev/tree/master/qdflask",
+        "Documentation": "https://github.com/almargolis/quickdev/blob/master/qdflaskemail/README.md",
+        "Source Code": "https://github.com/almargolis/quickdev/tree/master/qdflaskemail",
     },
     license="MIT",
     package_dir={'': 'src'},
-    packages=['qdflask'],
+    packages=['qdflaskemail'],
     include_package_data=True,
     package_data={
-        'qdflask': [
-            'templates/qdflask/*.html',
-            'static/*',
-        ],
+        'qdflaskemail': ['qd_conf.toml'],
     },
     install_requires=[
         "Flask>=2.0.0",
-        "Flask-SQLAlchemy>=2.5.0",
-        "Flask-Login>=0.5.0",
-        "Werkzeug>=2.0.0",
-        "PyYAML>=5.0",  # Used by qdyaml for data files
+        "qdemail",
+        "qdflask",
     ],
     python_requires=">=3.7",
     classifiers=[

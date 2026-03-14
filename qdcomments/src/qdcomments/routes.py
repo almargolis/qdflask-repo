@@ -142,7 +142,7 @@ def post_comment():
     # Send email notification if comment needs moderation
     if status == 'm':
         try:
-            from qdflask.email import send_to_admins
+            from qdflaskemail import send_to_admins
             reason = "blocked words detected" if status_reason == 'd' else "user requires moderation"
             send_to_admins(
                 subject="New Comment Pending Moderation",

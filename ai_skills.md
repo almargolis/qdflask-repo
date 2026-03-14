@@ -6,7 +6,7 @@ Use this reference when building Flask applications with the QuickDev toolkit.
 
 ### qdflask - User Authentication
 
-**What it provides**: Complete user auth with Flask-Login, role-based access control, user management UI, CLI tools, and optional email notifications.
+**What it provides**: Complete user auth with Flask-Login, role-based access control, user management UI, and CLI tools.
 
 **Integration**:
 ```python
@@ -43,6 +43,25 @@ def edit_content(): ...
 
 **User model methods**: `set_password()`, `check_password()`, `is_admin()`, `is_editor()`, `has_role()`, `get_by_username()`, `get_by_email()`, `get_all_active()`, `get_verified_admins()`
 
+### qdflaskemail - Email Notifications
+
+**What it provides**: Email notification service wrapping qdemail, with admin notification helpers and an enabled/disabled config flag. When disabled, all functions silently no-op.
+
+**Integration**:
+```python
+from qdflaskemail import init_qdflaskemail, send_email, send_to_admins
+
+init_qdflaskemail(app)
+# or disable: init_qdflaskemail(app, config={'enabled': False})
+```
+
+**Public API**:
+- `send_email(subject, recipients, body, sender=None)` — send to specific recipients
+- `send_to_admins(subject, body, sender=None)` — send to verified admin users
+- `get_verified_admin_emails()` — list verified admin email addresses
+
+**Disabling**: Set `QDFLASKEMAIL_ENABLED = False` in app config — all functions return `False` or `[]` without calling qdemail.
+
 ### qdimages - Image Management
 
 **What it provides**: Content-addressed image storage with xxHash dedup, web-based editor (crop, resize, brightness, background removal), metadata tracking, REST API with 16 endpoints.
@@ -68,6 +87,7 @@ init_image_manager(app, {
 All packages are installed automatically by qdstart when enabled. For manual installation:
 ```bash
 pip install -e ./qdflask
+pip install -e ./qdflaskemail
 pip install -e ./qdimages
 pip install -e ./qdcomments
 ```
@@ -114,10 +134,12 @@ class UserProfile(db.Model):
 
 ```
 qdflask-repo/
-├── qdflask/src/qdflask/       # Authentication package
-├── qdimages/src/qdimages/     # Image management package
-├── qdcomments/src/qdcomments/ # Comments package
+├── qdflask/src/qdflask/             # Authentication package
+├── qdflaskemail/src/qdflaskemail/   # Email notifications package
+├── qdimages/src/qdimages/           # Image management package
+├── qdcomments/src/qdcomments/       # Comments package
 ├── qdflask_tests/
+├── qdflaskemail_tests/
 ├── qdimages_tests/
 └── README.md
 ```
